@@ -6,11 +6,9 @@ h2_wins = 0
 ties = 0
 
 File.readlines('p054_poker.txt').each do |l|
-  h1 = PokerHand.new
-  h2 = PokerHand.new
   cards = l.chomp.split(' ')
-  h1.add_cards(cards[0..4])
-  h2.add_cards(cards[5..9])
+  h1 = PokerHand.new(cards[0..4])
+  h2 = PokerHand.new(cards[5..9])
 
   if h1 > h2
     h1_wins += 1

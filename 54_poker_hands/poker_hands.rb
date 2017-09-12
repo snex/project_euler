@@ -15,7 +15,7 @@ File.readlines('p054_poker.txt').each do |l|
   if h1 > h2
     h1_wins += 1
   elsif h1 < h2
-    h2_wins += 2
+    h2_wins += 1
   else
     ties += 1
   end

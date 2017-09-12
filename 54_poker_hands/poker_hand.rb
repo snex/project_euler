@@ -1,8 +1,10 @@
 require_relative 'hand_comparer'
+require_relative 'hand_utils'
 
 # represents a poker hand
 class PokerHand
   include Comparable
+  include HandUtils
   attr_reader :cards
 
   HAND_VALUES = %i[
@@ -25,6 +27,7 @@ class PokerHand
 
   def add_card(value)
     @cards << PlayingCard.new(value)
+    @sorted_ranks = sorted_ranks(self)
   end
 
   def add_cards(values)
@@ -48,7 +51,7 @@ class PokerHand
   private
 
   def royal_flush?
-    @cards.sort.first.rank == 'T' &&
+    @sorted_ranks.first == PlayingCard::RANKS.size - 1 &&
       flush? &&
       straight?
   end
@@ -58,8 +61,7 @@ class PokerHand
   end
 
   def four_of_a_kind?
-    ranks = @cards.map(&:rank)
-    ranks.any? { |r| ranks.count(r) == 4 }
+    !paired_ranks_by_count(@sorted_ranks, 4).empty?
   end
 
   def full_house?
@@ -71,30 +73,19 @@ class PokerHand
   end
 
   def straight?
-    sorted_ranks = @cards.sort.map { |c| PlayingCard::RANKS.index(c.rank) }
-    sorted_ranks == (sorted_ranks.min..sorted_ranks.max).to_a ||
-      # special case of A 2 3 4 5
-      sorted_ranks == [0, 1, 2, 3, 12]
+    @sorted_ranks == (@sorted_ranks.min..@sorted_ranks.max).to_a.reverse
   end
 
   def three_of_a_kind?
-    ranks = @cards.map(&:rank)
-    ranks.any? { |r| ranks.count(r) == 3 }
+    !paired_ranks_by_count(@sorted_ranks, 3).empty?
   end
 
   def two_pairs?
-    ranks = @cards.map(&:rank)
-    pairs = ranks.each_with_object({}) do |r, accum|
-      accum[r] ||= 0
-      accum[r] += 1
-    end
-
-    pairs.select { |_, v| v == 2 }.size == 2
+    paired_ranks_by_count(@sorted_ranks, 2).uniq.size == 2
   end
 
   def one_pair?
-    ranks = @cards.map(&:rank)
-    ranks.any? { |r| ranks.count(r) == 2 }
+    !paired_ranks_by_count(@sorted_ranks, 2).empty?
   end
 
   def high_card?
